@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Internal Team Timeline</title>
+
+<style>
+    :root {
+        --bg: #0b1220;
+        --card: #111a2e;
+        --accent: #4da3ff;
+        --text: #e6ecf3;
+        --muted: #9aa4b2;
+    }
+
+    * {
+        box-sizing: border-box;
+        font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+    }
+
+    h1 {
+        text-align: center;
+        padding: 24px 16px 8px;
+        font-size: 1.6rem;
+        letter-spacing: 0.5px;
+    }
+
+    .subtext {
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 24px;
+    }
+
+    /* MAIN GRID */
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        padding: 24px;
+        max-width: 1100px;
+        margin: auto;
+    }
+
+    .team-box {
+        background: var(--card);
+        border-radius: 14px;
+        padding: 24px;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .team-box:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .team-box h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: var(--accent);
+    }
+
+    .team-box p {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 0.9rem;
+    }
+
+    /* OVERLAY COMPONENT */
+    .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.75);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .overlay.active {
+        display: flex;
+    }
+
+    .panel {
+        background: var(--card);
+        width: 90%;
+        max-width: 700px;
+        border-radius: 16px;
+        padding: 24px;
+        position: relative;
+        max-height: 85vh;
+        overflow-y: auto;
+        animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.97); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .close-btn {
+        position: absolute;
+        top: 14px;
+        right: 16px;
+        font-size: 22px;
+        color: var(--muted);
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .close-btn:hover {
+        color: var(--text);
+    }
+
+    .panel h2 {
+        margin-top: 0;
+        color: var(--accent);
+        font-size: 1.4rem;
+    }
+
+    .timeline-item {
+        border-left: 2px solid var(--accent);
+        padding-left: 16px;
+        margin-bottom: 18px;
+    }
+
+    .timeline-item span {
+        font-size: 0.85rem;
+        color: var(--muted);
+    }
+
+    .timeline-item p {
+        margin: 6px 0 0;
+        font-size: 0.95rem;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>Internal Team Timeline</h1>
+<div class="subtext">Organisation-only planning & execution dashboard</div>
+
+<div class="team-grid">
+    <div class="team-box" onclick="openTeam('Research Team')">
+        <h3>Research Team</h3>
+        <p>Quantum, AI & exploratory R&D</p>
+    </div>
+
+    <div class="team-box" onclick="openTeam('Development Team')">
+        <h3>Development Team</h3>
+        <p>Product engineering & systems</p>
+    </div>
+
+    <div class="team-box" onclick="openTeam('Cybersecurity Team')">
+        <h3>Cybersecurity Team</h3>
+        <p>Security frameworks & audits</p>
+    </div>
+
+    <div class="team-box" onclick="openTeam('Operations Team')">
+        <h3>Operations Team</h3>
+        <p>Internal processes & execution</p>
+    </div>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay">
+    <div class="panel">
+        <div class="close-btn" onclick="closePanel()">✕</div>
+        <h2 id="panelTitle"></h2>
+        <div id="timelineContent"></div>
+    </div>
+</div>
+
+<script>
+const data = {
+    "Research Team": [
+        { date: "05 Jan 2026", task: "Quantum threat landscape analysis" },
+        { date: "20 Jan 2026", task: "Post-quantum crypto feasibility report" },
+        { date: "10 Feb 2026", task: "Internal whitepaper submission" }
+    ],
+    "Development Team": [
+        { date: "01 Jan 2026", task: "Core platform architecture freeze" },
+        { date: "18 Jan 2026", task: "MVP build completion" },
+        { date: "05 Feb 2026", task: "Internal testing & fixes" }
+    ],
+    "Cybersecurity Team": [
+        { date: "08 Jan 2026", task: "Security policy drafting" },
+        { date: "25 Jan 2026", task: "Internal vulnerability assessment" },
+        { date: "12 Feb 2026", task: "Compliance readiness review" }
+    ],
+    "Operations Team": [
+        { date: "03 Jan 2026", task: "Internal SOP rollout" },
+        { date: "15 Jan 2026", task: "Team onboarding coordination" },
+        { date: "01 Feb 2026", task: "Process automation review" }
+    ]
+};
+
+function openTeam(teamName) {
+    document.getElementById("panelTitle").innerText = teamName;
+    const container = document.getElementById("timelineContent");
+    container.innerHTML = "";
+
+    data[teamName].forEach(item => {
+        const div = document.createElement("div");
+        div.className = "timeline-item";
+        div.innerHTML = `
+            <span>${item.date}</span>
+            <p>${item.task}</p>
+        `;
+        container.appendChild(div);
+    });
+
+    document.getElementById("overlay").classList.add("active");
+}
+
+function closePanel() {
+    document.getElementById("overlay").classList.remove("active");
+}
+</script>
+
+</body>
+</html>
