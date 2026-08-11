@@ -1,15 +1,999 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QubiSafe Private Limited</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Internal Portal — YourOrg</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  /* ── Token System ──────────────────────────────────────── */
+  :root {
+    --ink:      #1a1a2e;
+    --ink-mid:  #3d3d5c;
+    --ink-soft: #7a7a9d;
+    --rule:     #e2e2f0;
+    --bg:       #f7f7fc;
+    --surface:  #ffffff;
+    --accent:   #4f46e5;
+    --accent-2: #7c3aed;
+    --badge-green: #059669;
+    --badge-amber: #d97706;
+    --badge-red:   #dc2626;
+    --badge-blue:  #2563eb;
+    --sidebar-w: 260px;
+    --radius: 10px;
+    --shadow: 0 1px 3px rgba(26,26,46,.07), 0 4px 12px rgba(26,26,46,.05);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink);
+    background: var(--bg);
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ───────────────────────────────────────────── */
+  #sidebar {
+    width: var(--sidebar-w);
+    min-height: 100vh;
+    background: var(--ink);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    overflow-y: auto;
+    z-index: 100;
+    transition: transform .25s ease;
+  }
+
+  .sidebar-brand {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+  .sidebar-brand .org-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    letter-spacing: -.3px;
+    color: #fff;
+  }
+  .sidebar-brand .org-tagline {
+    font-size: 11px;
+    color: rgba(255,255,255,.45);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+
+  .sidebar-search {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .sidebar-search input {
+    width: 100%;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 6px;
+    color: #fff;
+    font-size: 12.5px;
+    padding: 7px 10px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .sidebar-search input::placeholder { color: rgba(255,255,255,.3); }
+  .sidebar-search input:focus { border-color: var(--accent); }
+
+  .nav-group { padding: 16px 0 4px; }
+  .nav-group-label {
+    padding: 0 20px 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.35);
+  }
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    color: rgba(255,255,255,.65);
+    text-decoration: none;
+    font-size: 13px;
+    transition: background .12s, color .12s;
+    border-left: 3px solid transparent;
+  }
+  .nav-link:hover { background: rgba(255,255,255,.06); color: #fff; }
+  .nav-link.active { background: rgba(79,70,229,.25); color: #fff; border-left-color: var(--accent); }
+  .nav-link .icon { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,.08);
+    font-size: 11.5px;
+    color: rgba(255,255,255,.3);
+  }
+  .sidebar-footer a { color: rgba(255,255,255,.5); text-decoration: none; }
+
+  /* ── Main Content ──────────────────────────────────────── */
+  #main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* ── Top Bar ───────────────────────────────────────────── */
+  #topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--rule);
+    padding: 12px 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .topbar-breadcrumb {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .topbar-breadcrumb span { color: var(--ink-mid); font-weight: 500; }
+  .topbar-right { display: flex; align-items: center; gap: 14px; }
+  .topbar-badge {
+    background: #f0fdf4;
+    color: var(--badge-green);
+    border: 1px solid #bbf7d0;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11.5px;
+    font-weight: 500;
+  }
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    display: grid; place-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #hamburger {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--ink);
+  }
+
+  /* ── Page Body ─────────────────────────────────────────── */
+  #content { padding: 36px; max-width: 1100px; }
+
+  /* ── Sections ──────────────────────────────────────────── */
+  .page-section {
+    display: none;
+    animation: fadeIn .2s ease;
+  }
+  .page-section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* ── Hero Banner ───────────────────────────────────────── */
+  .hero {
+    background: linear-gradient(135deg, var(--ink) 0%, #2d2b6e 60%, var(--accent-2) 100%);
+    border-radius: var(--radius);
+    padding: 40px 44px;
+    color: #fff;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    right: -40px; top: -60px;
+    width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(124,58,237,.4) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.5);
+    margin-bottom: 10px;
+  }
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    line-height: 1.15;
+    margin-bottom: 12px;
+  }
+  .hero p {
+    font-size: 14.5px;
+    color: rgba(255,255,255,.7);
+    max-width: 540px;
+    line-height: 1.7;
+  }
+  .hero-meta {
+    margin-top: 20px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .hero-stat { display: flex; flex-direction: column; }
+  .hero-stat .val { font-size: 22px; font-weight: 700; }
+  .hero-stat .lbl { font-size: 11px; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .06em; margin-top: 1px; }
+
+  /* ── Section title ─────────────────────────────────────── */
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 24px;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .section-sub { font-size: 13.5px; color: var(--ink-soft); margin-bottom: 28px; }
+
+  /* ── Card grid ─────────────────────────────────────────── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 18px;
+    margin-bottom: 36px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    box-shadow: var(--shadow);
+    transition: box-shadow .15s, transform .15s;
+    cursor: pointer;
+  }
+  .card:hover { box-shadow: 0 4px 16px rgba(26,26,46,.1); transform: translateY(-2px); }
+  .card-icon {
+    font-size: 22px;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .card h3 { font-size: 14.5px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+  .card p { font-size: 12.5px; color: var(--ink-soft); line-height: 1.6; }
+  .card-footer {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+  }
+  .badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+  .badge-green  { background: #f0fdf4; color: var(--badge-green); border: 1px solid #bbf7d0; }
+  .badge-amber  { background: #fffbeb; color: var(--badge-amber); border: 1px solid #fde68a; }
+  .badge-red    { background: #fef2f2; color: var(--badge-red);   border: 1px solid #fecaca; }
+  .badge-blue   { background: #eff6ff; color: var(--badge-blue);  border: 1px solid #bfdbfe; }
+  .badge-purple { background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; }
+
+  /* ── Table ─────────────────────────────────────────────── */
+  .tbl-wrap {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 36px;
+  }
+  .tbl-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .tbl-header h3 { font-size: 14px; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: var(--bg);
+    text-align: left;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--rule);
+  }
+  td {
+    padding: 13px 20px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafaff; }
+  td a { color: var(--accent); text-decoration: none; font-weight: 500; }
+  td a:hover { text-decoration: underline; }
+
+  /* ── Divider ───────────────────────────────────────────── */
+  .divider { border: none; border-top: 1px solid var(--rule); margin: 32px 0; }
+
+  /* ── Alert boxes ───────────────────────────────────────── */
+  .alert {
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 13px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 18px;
+  }
+  .alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .alert-info    { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+  .alert-warning { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+  .alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #065f46; }
+
+  /* ── Quick links ───────────────────────────────────────── */
+  .quick-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .quick-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--ink-mid);
+    text-decoration: none;
+    font-weight: 500;
+    transition: border-color .12s, color .12s;
+    cursor: pointer;
+  }
+  .quick-link:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Timeline ──────────────────────────────────────────── */
+  .timeline { position: relative; padding-left: 28px; margin-bottom: 24px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--rule);
+  }
+  .timeline-item { position: relative; margin-bottom: 22px; }
+  .timeline-dot {
+    position: absolute;
+    left: -24px; top: 4px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--surface);
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+  .timeline-date { font-size: 11.5px; color: var(--ink-soft); margin-bottom: 3px; font-weight: 500; }
+  .timeline-title { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .timeline-body { font-size: 12.5px; color: var(--ink-soft); margin-top: 3px; }
+
+  /* ── Contacts grid ─────────────────────────────────────── */
+  .contacts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .contact-card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    box-shadow: var(--shadow);
+  }
+  .contact-avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .contact-info h4 { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .contact-info .role { font-size: 11.5px; color: var(--ink-soft); margin-top: 1px; }
+  .contact-info .email { font-size: 11.5px; color: var(--accent); margin-top: 5px; word-break: break-all; }
+
+  /* ── Announcement ──────────────────────────────────────── */
+  .announcement {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow);
+  }
+  .announcement-meta { font-size: 11px; color: var(--ink-soft); margin-bottom: 6px; }
+  .announcement h4 { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+  .announcement p { font-size: 13px; color: var(--ink-mid); line-height: 1.6; }
+
+  /* ── Button ────────────────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: opacity .12s;
+  }
+  .btn:hover { opacity: .88; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-outline { background: transparent; border: 1px solid var(--rule); color: var(--ink-mid); }
+
+  /* ── Responsive ────────────────────────────────────────── */
+  @media (max-width: 768px) {
+    #sidebar { transform: translateX(-100%); }
+    #sidebar.open { transform: none; }
+    #main { margin-left: 0; }
+    #content { padding: 20px; }
+    #hamburger { display: block; }
+    .hero { padding: 28px 24px; }
+    .hero h1 { font-size: 24px; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+</style>
 </head>
 <body>
-    <h1>Welcome to the Internal page of Qubisafe Private Limited </h1>
 
-    <h3><a href="email_aup.html">Link to Email AUP</a></h3>
-    <h3><a href="timeline.html">Link to Timeline </a></h3>
+<!-- ── Sidebar ─────────────────────────────────── -->
+<nav id="sidebar">
+  <div class="sidebar-brand">
+    <div class="org-name">🏢 YourOrg</div>
+    <div class="org-tagline">Internal Portal</div>
+  </div>
+  <div class="sidebar-search">
+    <input type="text" id="searchInput" placeholder="Search policies, docs…" oninput="filterNav(this.value)">
+  </div>
 
+  <div class="nav-group">
+    <div class="nav-group-label">Overview</div>
+    <a class="nav-link active" href="#" onclick="show('home',this)"><span class="icon">🏠</span>Home</a>
+    <a class="nav-link" href="#" onclick="show('announcements',this)"><span class="icon">📢</span>Announcements</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Policies</div>
+    <a class="nav-link" href="#" onclick="show('policies',this)"><span class="icon">📋</span>All Policies</a>
+    <a class="nav-link" href="#" onclick="show('code-of-conduct',this)"><span class="icon">⚖️</span>Code of Conduct</a>
+    <a class="nav-link" href="#" onclick="show('leave',this)"><span class="icon">🌴</span>Leave &amp; Attendance</a>
+    <a class="nav-link" href="#" onclick="show('remote',this)"><span class="icon">💻</span>Remote Work</a>
+    <a class="nav-link" href="#" onclick="show('data-security',this)"><span class="icon">🔐</span>Data &amp; Security</a>
+    <a class="nav-link" href="#" onclick="show('expense',this)"><span class="icon">💳</span>Expense &amp; Travel</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">People</div>
+    <a class="nav-link" href="#" onclick="show('org-chart',this)"><span class="icon">🌐</span>Org Chart</a>
+    <a class="nav-link" href="#" onclick="show('contacts',this)"><span class="icon">👥</span>Key Contacts</a>
+    <a class="nav-link" href="#" onclick="show('onboarding',this)"><span class="icon">🚀</span>Onboarding</a>
+    <a class="nav-link" href="#" onclick="show('benefits',this)"><span class="icon">🎁</span>Benefits</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Resources</div>
+    <a class="nav-link" href="#" onclick="show('it',this)"><span class="icon">🖥️</span>IT &amp; Tools</a>
+    <a class="nav-link" href="#" onclick="show('brand',this)"><span class="icon">🎨</span>Brand Assets</a>
+    <a class="nav-link" href="#" onclick="show('forms',this)"><span class="icon">📝</span>Forms &amp; Templates</a>
+    <a class="nav-link" href="#" onclick="show('changelog',this)"><span class="icon">📅</span>Policy Changelog</a>
+  </div>
+
+  <div class="sidebar-footer">
+    <div>Intranet v2.1 &middot; <a href="#">Help</a></div>
+    <div style="margin-top:4px">Last updated Aug 2026</div>
+  </div>
+</nav>
+
+<!-- ── Main ────────────────────────────────────── -->
+<div id="main">
+  <header id="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button id="hamburger" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-breadcrumb" id="breadcrumb">Portal / <span>Home</span></div>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-badge">✓ All Systems Operational</span>
+      <div class="avatar" title="Your profile">JD</div>
+    </div>
+  </header>
+
+  <div id="content">
+
+    <!-- ═══ HOME ═══════════════════════════════════ -->
+    <section class="page-section active" id="sec-home">
+      <div class="hero">
+        <div class="hero-eyebrow">Internal Portal</div>
+        <h1>Welcome back, Jane 👋</h1>
+        <p>Your single hub for company policies, documents, tools, and everything you need to get work done.</p>
+        <div class="hero-meta">
+          <div class="hero-stat"><span class="val">24</span><span class="lbl">Active Policies</span></div>
+          <div class="hero-stat"><span class="val">6</span><span class="lbl">Departments</span></div>
+          <div class="hero-stat"><span class="val">142</span><span class="lbl">Employees</span></div>
+        </div>
+      </div>
+
+      <div class="alert alert-info">
+        <span class="alert-icon">ℹ️</span>
+        <div><strong>Open Enrollment:</strong> Benefits selection closes <strong>Sept 15, 2026</strong>. Visit the Benefits section or reach HR at hr@yourorg.com.</div>
+      </div>
+
+      <h2 class="section-title">Quick Access</h2>
+      <p class="section-sub">Jump to the most-used sections.</p>
+
+      <div class="quick-links">
+        <span class="quick-link" onclick="show('leave',null)">🌴 Request Leave</span>
+        <span class="quick-link" onclick="show('expense',null)">💳 Submit Expense</span>
+        <span class="quick-link" onclick="show('it',null)">🖥️ IT Support</span>
+        <span class="quick-link" onclick="show('forms',null)">📝 Forms</span>
+        <span class="quick-link" onclick="show('onboarding',null)">🚀 Onboarding</span>
+        <span class="quick-link" onclick="show('brand',null)">🎨 Brand Kit</span>
+      </div>
+
+      <h2 class="section-title">Key Policy Highlights</h2>
+      <p class="section-sub">Recently updated or frequently referenced.</p>
+      <div class="card-grid">
+        <div class="card" onclick="show('code-of-conduct',null)">
+          <span class="card-icon">⚖️</span>
+          <h3>Code of Conduct</h3>
+          <p>Professional standards, ethics expectations, and reporting procedures.</p>
+          <div class="card-footer"><span class="badge badge-green">Active</span><span>Updated Jun 2026</span></div>
+        </div>
+        <div class="card" onclick="show('remote',null)">
+          <span class="card-icon">💻</span>
+          <h3>Remote Work Policy</h3>
+          <p>Eligibility, expectations, home-office setup support, and core hours.</p>
+          <div class="card-footer"><span class="badge badge-green">Active</span><span>Updated May 2026</span></div>
+        </div>
+        <div class="card" onclick="show('data-security',null)">
+          <span class="card-icon">🔐</span>
+          <h3>Data &amp; Security</h3>
+          <p>Data classification, device rules, and incident reporting flow.</p>
+          <div class="card-footer"><span class="badge badge-amber">Review Due</span><span>Updated Jan 2026</span></div>
+        </div>
+        <div class="card" onclick="show('leave',null)">
+          <span class="card-icon">🌴</span>
+          <h3>Leave Policy</h3>
+          <p>Annual, sick, parental, and special leave entitlements and process.</p>
+          <div class="card-footer"><span class="badge badge-green">Active</span><span>Updated Apr 2026</span></div>
+        </div>
+        <div class="card" onclick="show('expense',null)">
+          <span class="card-icon">💳</span>
+          <h3>Expense &amp; Travel</h3>
+          <p>Reimbursement limits, approval chains, and travel booking guidelines.</p>
+          <div class="card-footer"><span class="badge badge-green">Active</span><span>Updated Mar 2026</span></div>
+        </div>
+        <div class="card" onclick="show('benefits',null)">
+          <span class="card-icon">🎁</span>
+          <h3>Benefits Summary</h3>
+          <p>Health, dental, vision, retirement, and wellness program overview.</p>
+          <div class="card-footer"><span class="badge badge-blue">Enrollment Open</span><span>2026 Plan</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ ANNOUNCEMENTS ═══════════════════════════ -->
+    <section class="page-section" id="sec-announcements">
+      <h2 class="section-title">📢 Announcements</h2>
+      <p class="section-sub">Company-wide updates from leadership and HR.</p>
+      <div class="announcement">
+        <div class="announcement-meta">HR &middot; Aug 5, 2026</div>
+        <h4>Benefits Open Enrollment — Closes Sept 15</h4>
+        <p>Annual benefits election is open. Log into the benefits portal to review and update your health, dental, vision, and retirement selections before the deadline.</p>
+      </div>
+      <div class="announcement">
+        <div class="announcement-meta">Engineering &middot; Jul 28, 2026</div>
+        <h4>Scheduled Maintenance — Aug 14, 10 PM–2 AM</h4>
+        <p>Internal tools (Jira, Confluence, VPN) will be unavailable during this window. Plan accordingly. Contact IT for urgent matters.</p>
+      </div>
+      <div class="announcement">
+        <div class="announcement-meta">Leadership &middot; Jul 15, 2026</div>
+        <h4>All-Hands: Q3 Review — Aug 20, 3 PM EST</h4>
+        <p>Join the company-wide All-Hands to hear from the CEO on Q2 results, Q3 goals, and upcoming strategic initiatives. Calendar invites have been sent.</p>
+      </div>
+      <div class="announcement">
+        <div class="announcement-meta">Facilities &middot; Jun 30, 2026</div>
+        <h4>New York Office — Floor 12 Renovation</h4>
+        <p>Floor 12 will undergo renovation July 1–31. Teams on that floor are temporarily relocated to Floor 9. See the seating map in IT Resources.</p>
+      </div>
+    </section>
+
+    <!-- ═══ ALL POLICIES ════════════════════════════ -->
+    <section class="page-section" id="sec-policies">
+      <h2 class="section-title">📋 All Policies</h2>
+      <p class="section-sub">Complete index of company policies. Click a title to view the full document.</p>
+      <div class="tbl-wrap">
+        <div class="tbl-header"><h3>Policy Registry</h3><button class="btn btn-outline" onclick="show('changelog',null)">View Changelog</button></div>
+        <table>
+          <thead>
+            <tr><th>Policy Name</th><th>Owner</th><th>Last Updated</th><th>Status</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Code of Conduct</strong></td><td>Legal &amp; HR</td><td>Jun 2026</td><td><span class="badge badge-green">Active</span></td><td><a href="#" onclick="show('code-of-conduct',null)">View →</a></td></tr>
+            <tr><td><strong>Leave &amp; Attendance</strong></td><td>HR</td><td>Apr 2026</td><td><span class="badge badge-green">Active</span></td><td><a href="#" onclick="show('leave',null)">View →</a></td></tr>
+            <tr><td><strong>Remote Work</strong></td><td>HR</td><td>May 2026</td><td><span class="badge badge-green">Active</span></td><td><a href="#" onclick="show('remote',null)">View →</a></td></tr>
+            <tr><td><strong>Data &amp; Information Security</strong></td><td>IT / InfoSec</td><td>Jan 2026</td><td><span class="badge badge-amber">Review Due</span></td><td><a href="#" onclick="show('data-security',null)">View →</a></td></tr>
+            <tr><td><strong>Expense &amp; Travel</strong></td><td>Finance</td><td>Mar 2026</td><td><span class="badge badge-green">Active</span></td><td><a href="#" onclick="show('expense',null)">View →</a></td></tr>
+            <tr><td><strong>Anti-Harassment &amp; DEIB</strong></td><td>HR</td><td>Feb 2026</td><td><span class="badge badge-green">Active</span></td><td><a href="#">View →</a></td></tr>
+            <tr><td><strong>Whistleblower &amp; Non-Retaliation</strong></td><td>Legal</td><td>Dec 2025</td><td><span class="badge badge-green">Active</span></td><td><a href="#">View →</a></td></tr>
+            <tr><td><strong>Acceptable Use (IT)</strong></td><td>IT</td><td>Jan 2026</td><td><span class="badge badge-green">Active</span></td><td><a href="#">View →</a></td></tr>
+            <tr><td><strong>Conflict of Interest</strong></td><td>Legal</td><td>Nov 2025</td><td><span class="badge badge-green">Active</span></td><td><a href="#">View →</a></td></tr>
+            <tr><td><strong>Health &amp; Safety</strong></td><td>Facilities</td><td>Mar 2026</td><td><span class="badge badge-green">Active</span></td><td><a href="#">View →</a></td></tr>
+            <tr><td><strong>Social Media</strong></td><td>Marketing / HR</td><td>Oct 2025</td><td><span class="badge badge-amber">Review Due</span></td><td><a href="#">View →</a></td></tr>
+            <tr><td><strong>Performance Management</strong></td><td>HR</td><td>Jan 2026</td><td><span class="badge badge-green">Active</span></td><td><a href="#">View →</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ CODE OF CONDUCT ════════════════════════ -->
+    <section class="page-section" id="sec-code-of-conduct">
+      <h2 class="section-title">⚖️ Code of Conduct</h2>
+      <p class="section-sub">Our shared standards for professional, ethical behaviour. Updated June 2026.</p>
+      <div class="alert alert-success"><span class="alert-icon">✅</span><div>All employees must acknowledge this policy annually. Your last acknowledgement: <strong>Jan 15, 2026</strong>.</div></div>
+      <div class="card-grid" style="grid-template-columns:1fr;">
+        <div class="card">
+          <h3>1. Professional Conduct</h3>
+          <p>We treat every colleague, client, and partner with respect. Discriminatory, harassing, or threatening behaviour of any kind is not tolerated — whether in person, in writing, or in digital channels. Concerns should be raised with your manager or HR.</p>
+        </div>
+        <div class="card">
+          <h3>2. Conflict of Interest</h3>
+          <p>Avoid situations where personal interests could conflict with your duties. Disclose to HR any outside employment, investments in competitors, or personal relationships that may influence business decisions. When in doubt, disclose.</p>
+        </div>
+        <div class="card">
+          <h3>3. Confidentiality</h3>
+          <p>Protect proprietary information — client data, financial forecasts, product roadmaps, and personnel matters. This obligation continues after employment ends. Do not share confidential information on personal devices or unapproved channels.</p>
+        </div>
+        <div class="card">
+          <h3>4. Integrity &amp; Honesty</h3>
+          <p>Accurate record-keeping, honest communication, and fair dealing are non-negotiable. Falsifying records, misrepresenting work, or accepting undisclosed gifts over $50 in value is a disciplinary matter.</p>
+        </div>
+        <div class="card">
+          <h3>5. Reporting Concerns</h3>
+          <p>Report violations through your manager, HR, or the anonymous Ethics Hotline at <strong>ethics@yourorg.com</strong>. Retaliation against anyone who reports in good faith is strictly prohibited.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ LEAVE ════════════════════════════════════ -->
+    <section class="page-section" id="sec-leave">
+      <h2 class="section-title">🌴 Leave &amp; Attendance</h2>
+      <p class="section-sub">Entitlements, accrual rates, and how to request time off. Updated April 2026.</p>
+      <div class="tbl-wrap" style="margin-bottom:24px;">
+        <div class="tbl-header"><h3>Leave Entitlements</h3></div>
+        <table>
+          <thead><tr><th>Leave Type</th><th>Entitlement</th><th>Accrual</th><th>Carry Over</th></tr></thead>
+          <tbody>
+            <tr><td>Annual / PTO</td><td>20 days/year (Yr 1–3) · 25 days (Yr 4+)</td><td>Monthly</td><td>Up to 5 days</td></tr>
+            <tr><td>Sick Leave</td><td>10 days/year</td><td>Monthly</td><td>None</td></tr>
+            <tr><td>Parental (Primary)</td><td>16 weeks paid</td><td>—</td><td>N/A</td></tr>
+            <tr><td>Parental (Secondary)</td><td>4 weeks paid</td><td>—</td><td>N/A</td></tr>
+            <tr><td>Bereavement</td><td>5 days (immediate family) · 3 days (extended)</td><td>—</td><td>N/A</td></tr>
+            <tr><td>Public Holidays</td><td>Per local jurisdiction</td><td>—</td><td>N/A</td></tr>
+            <tr><td>Jury Duty</td><td>Full pay for duration</td><td>—</td><td>N/A</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="alert alert-info"><span class="alert-icon">ℹ️</span><div>Request leave in <strong>Workday</strong> at least 5 business days in advance for planned absences. Unplanned sick leave must be reported to your manager by 9 AM on the day of absence.</div></div>
+      <div class="card-grid">
+        <div class="card"><h3>How to Request Leave</h3><p>Log into Workday → Time Off → Request. Select dates and leave type. Your manager will approve or decline within 2 business days.</p></div>
+        <div class="card"><h3>Public Holidays 2026</h3><p>A full calendar of local public holidays is available in the HR Documents folder. Contact HR for country-specific queries.</p></div>
+      </div>
+    </section>
+
+    <!-- ═══ REMOTE WORK ══════════════════════════════ -->
+    <section class="page-section" id="sec-remote">
+      <h2 class="section-title">💻 Remote Work Policy</h2>
+      <p class="section-sub">Guidelines for working outside the office. Updated May 2026.</p>
+      <div class="card-grid">
+        <div class="card"><span class="card-icon">📌</span><h3>Eligibility</h3><p>Employees who have completed their 3-month probation and whose roles do not require on-site presence may work remotely up to 3 days per week.</p></div>
+        <div class="card"><span class="card-icon">🕙</span><h3>Core Hours</h3><p>All employees must be reachable 10 AM–3 PM in their local timezone on working days, regardless of remote or office status.</p></div>
+        <div class="card"><span class="card-icon">🏠</span><h3>Home Office Setup</h3><p>The company provides a one-time home office allowance of $600 for equipment. Submit receipts within 60 days via Expense Report (IT Equipment category).</p></div>
+        <div class="card"><span class="card-icon">🔒</span><h3>Security</h3><p>Always use the company VPN when accessing internal systems. Do not work from unsecured public Wi-Fi without VPN enabled. Lock screens when stepping away.</p></div>
+        <div class="card"><span class="card-icon">📅</span><h3>In-Office Days</h3><p>Mandatory office attendance for All-Hands events, onboarding sessions, and any day explicitly called by your manager with 48 hours' notice.</p></div>
+        <div class="card"><span class="card-icon">🌍</span><h3>International Remote</h3><p>Working remotely from another country for more than 10 consecutive days requires prior approval from HR and Legal. Tax implications vary.</p></div>
+      </div>
+    </section>
+
+    <!-- ═══ DATA SECURITY ══════════════════════════ -->
+    <section class="page-section" id="sec-data-security">
+      <h2 class="section-title">🔐 Data &amp; Security Policy</h2>
+      <p class="section-sub">Protecting company and client data is everyone's responsibility. Updated January 2026.</p>
+      <div class="alert alert-warning"><span class="alert-icon">⚠️</span><div>This policy is due for review. An updated version will be published by <strong>Oct 1, 2026</strong>. Current version remains in effect.</div></div>
+      <div class="tbl-wrap">
+        <div class="tbl-header"><h3>Data Classification</h3></div>
+        <table>
+          <thead><tr><th>Level</th><th>Description</th><th>Examples</th><th>Handling</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge badge-red">Restricted</span></td><td>Highest sensitivity</td><td>PII, payment data, legal docs</td><td>Encrypted at rest &amp; transit. No personal devices.</td></tr>
+            <tr><td><span class="badge badge-amber">Confidential</span></td><td>Business-sensitive</td><td>Financials, roadmaps, HR data</td><td>Internal only. VPN required.</td></tr>
+            <tr><td><span class="badge badge-blue">Internal</span></td><td>General internal use</td><td>Process docs, internal comms</td><td>Not for external sharing.</td></tr>
+            <tr><td><span class="badge badge-green">Public</span></td><td>Shareable externally</td><td>Press releases, job posts</td><td>Standard care.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card-grid">
+        <div class="card"><h3>Password Policy</h3><p>Minimum 12 characters, alphanumeric + special character. Use the company-approved password manager. MFA is mandatory on all work accounts.</p></div>
+        <div class="card"><h3>Incident Reporting</h3><p>Suspect a breach? Email <strong>security@yourorg.com</strong> immediately or call the IT hotline. Do not attempt to investigate on your own.</p></div>
+        <div class="card"><h3>Device Policy</h3><p>Company data must only be stored on approved devices enrolled in MDM. Report lost or stolen devices to IT within 2 hours.</p></div>
+      </div>
+    </section>
+
+    <!-- ═══ EXPENSE ══════════════════════════════════ -->
+    <section class="page-section" id="sec-expense">
+      <h2 class="section-title">💳 Expense &amp; Travel</h2>
+      <p class="section-sub">Reimbursement limits, approval flows, and travel booking rules. Updated March 2026.</p>
+      <div class="tbl-wrap" style="margin-bottom:24px;">
+        <div class="tbl-header"><h3>Expense Limits (Per Occurrence)</h3></div>
+        <table>
+          <thead><tr><th>Category</th><th>Limit</th><th>Approver</th><th>Receipt Required</th></tr></thead>
+          <tbody>
+            <tr><td>Meals (individual)</td><td>$50</td><td>Manager</td><td>Yes, over $25</td></tr>
+            <tr><td>Client meals / entertainment</td><td>$150/person</td><td>Manager + Finance</td><td>Always</td></tr>
+            <tr><td>Ground transport</td><td>Reasonable / actual</td><td>Manager</td><td>Yes, over $20</td></tr>
+            <tr><td>Flights (domestic)</td><td>Economy class</td><td>Manager</td><td>Always</td></tr>
+            <tr><td>Flights (international, >6 hr)</td><td>Business class eligible</td><td>Director</td><td>Always</td></tr>
+            <tr><td>Hotel</td><td>$200/night (tier 1 cities), $150 elsewhere</td><td>Manager</td><td>Always</td></tr>
+            <tr><td>Home office equipment</td><td>$600 one-time</td><td>HR</td><td>Always</td></tr>
+            <tr><td>Training / conferences</td><td>$2,000/year</td><td>Manager + HR</td><td>Always</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="alert alert-info"><span class="alert-icon">ℹ️</span><div>Submit all expenses via <strong>Expensify</strong> within <strong>30 days</strong> of incurring them. Late submissions may not be reimbursed. Book travel through <strong>TravelPerk</strong> for automatic policy compliance.</div></div>
+    </section>
+
+    <!-- ═══ ORG CHART ════════════════════════════════ -->
+    <section class="page-section" id="sec-org-chart">
+      <h2 class="section-title">🌐 Org Chart</h2>
+      <p class="section-sub">Reporting structure and department overview.</p>
+      <div class="tbl-wrap">
+        <div class="tbl-header"><h3>Leadership Team</h3></div>
+        <table>
+          <thead><tr><th>Name</th><th>Title</th><th>Department</th><th>Location</th><th>Contact</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Sarah Chen</strong></td><td>Chief Executive Officer</td><td>Executive</td><td>New York</td><td><a href="mailto:s.chen@yourorg.com">s.chen@yourorg.com</a></td></tr>
+            <tr><td><strong>Marcus Webb</strong></td><td>Chief Operating Officer</td><td>Operations</td><td>New York</td><td><a href="mailto:m.webb@yourorg.com">m.webb@yourorg.com</a></td></tr>
+            <tr><td><strong>Priya Nair</strong></td><td>Chief Financial Officer</td><td>Finance</td><td>Remote</td><td><a href="mailto:p.nair@yourorg.com">p.nair@yourorg.com</a></td></tr>
+            <tr><td><strong>James Okafor</strong></td><td>VP Engineering</td><td>Engineering</td><td>London</td><td><a href="mailto:j.okafor@yourorg.com">j.okafor@yourorg.com</a></td></tr>
+            <tr><td><strong>Lena Müller</strong></td><td>VP People</td><td>HR</td><td>Berlin</td><td><a href="mailto:l.muller@yourorg.com">l.muller@yourorg.com</a></td></tr>
+            <tr><td><strong>Daniel Park</strong></td><td>VP Product</td><td>Product</td><td>San Francisco</td><td><a href="mailto:d.park@yourorg.com">d.park@yourorg.com</a></td></tr>
+            <tr><td><strong>Aisha Kamara</strong></td><td>VP Marketing</td><td>Marketing</td><td>Remote</td><td><a href="mailto:a.kamara@yourorg.com">a.kamara@yourorg.com</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ CONTACTS ═════════════════════════════════ -->
+    <section class="page-section" id="sec-contacts">
+      <h2 class="section-title">👥 Key Contacts</h2>
+      <p class="section-sub">Who to contact for common questions and requests.</p>
+      <div class="contacts-grid">
+        <div class="contact-card"><div class="contact-avatar" style="background:linear-gradient(135deg,#4f46e5,#7c3aed)">HR</div><div class="contact-info"><h4>HR Team</h4><div class="role">People &amp; Culture</div><div class="email">hr@yourorg.com</div></div></div>
+        <div class="contact-card"><div class="contact-avatar" style="background:linear-gradient(135deg,#0891b2,#0e7490)">IT</div><div class="contact-info"><h4>IT Helpdesk</h4><div class="role">Tech Support</div><div class="email">it@yourorg.com</div></div></div>
+        <div class="contact-card"><div class="contact-avatar" style="background:linear-gradient(135deg,#059669,#047857)">FIN</div><div class="contact-info"><h4>Finance</h4><div class="role">Expenses &amp; Payroll</div><div class="email">finance@yourorg.com</div></div></div>
+        <div class="contact-card"><div class="contact-avatar" style="background:linear-gradient(135deg,#dc2626,#b91c1c)">LGL</div><div class="contact-info"><h4>Legal</h4><div class="role">Contracts &amp; Compliance</div><div class="email">legal@yourorg.com</div></div></div>
+        <div class="contact-card"><div class="contact-avatar" style="background:linear-gradient(135deg,#d97706,#b45309)">SEC</div><div class="contact-info"><h4>Security</h4><div class="role">Incidents &amp; Access</div><div class="email">security@yourorg.com</div></div></div>
+        <div class="contact-card"><div class="contact-avatar" style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">FAC</div><div class="contact-info"><h4>Facilities</h4><div class="role">Office &amp; Maintenance</div><div class="email">facilities@yourorg.com</div></div></div>
+        <div class="contact-card"><div class="contact-avatar" style="background:linear-gradient(135deg,#0284c7,#0369a1)">ETH</div><div class="contact-info"><h4>Ethics Hotline</h4><div class="role">Anonymous Reports</div><div class="email">ethics@yourorg.com</div></div></div>
+        <div class="contact-card"><div class="contact-avatar" style="background:linear-gradient(135deg,#16a34a,#15803d)">MKT</div><div class="contact-info"><h4>Marketing</h4><div class="role">Brand &amp; Comms</div><div class="email">brand@yourorg.com</div></div></div>
+      </div>
+    </section>
+
+    <!-- ═══ ONBOARDING ════════════════════════════════ -->
+    <section class="page-section" id="sec-onboarding">
+      <h2 class="section-title">🚀 Onboarding Guide</h2>
+      <p class="section-sub">Everything a new joiner needs in their first 30 days.</p>
+      <div class="alert alert-info"><span class="alert-icon">👋</span><div>Welcome! Complete all checklist items within your first 2 weeks. Your buddy is your first point of contact for any questions.</div></div>
+      <div class="card-grid" style="grid-template-columns:1fr;">
+        <div class="card"><h3>📅 Day 1 — Setup</h3><p>Collect laptop from IT. Set up email, Slack, and 1Password. Complete mandatory security training in LMS. Meet your manager for a 30-min intro call.</p></div>
+        <div class="card"><h3>📅 Week 1 — Orientation</h3><p>Attend the New Joiner Orientation session (HR-scheduled). Review all policies in this portal and sign the acknowledgement form in Workday. Schedule 1:1s with your direct teammates.</p></div>
+        <div class="card"><h3>📅 Weeks 2–4 — Ramp-up</h3><p>Shadow relevant team members. Complete role-specific training in LMS. Set 30-60-90 day goals with your manager. Join relevant Slack channels and recurring meetings.</p></div>
+      </div>
+      <h3 style="font-size:15px;font-weight:600;margin-bottom:12px;">Required Accounts &amp; Tools</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Tool</th><th>Used For</th><th>Access Via</th></tr></thead>
+          <tbody>
+            <tr><td>Slack</td><td>Team communication</td><td>IT provisions on Day 1</td></tr>
+            <tr><td>Workday</td><td>HR, leave, payroll</td><td>HR sends login link</td></tr>
+            <tr><td>Jira</td><td>Project tracking</td><td>Your manager grants access</td></tr>
+            <tr><td>Confluence</td><td>Internal docs</td><td>SSO via Google Workspace</td></tr>
+            <tr><td>Expensify</td><td>Expense reports</td><td>IT provisions</td></tr>
+            <tr><td>1Password</td><td>Password management</td><td>IT provisions on Day 1</td></tr>
+            <tr><td>Google Workspace</td><td>Email, Calendar, Drive</td><td>IT provisions on Day 1</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ BENEFITS ══════════════════════════════════ -->
+    <section class="page-section" id="sec-benefits">
+      <h2 class="section-title">🎁 Benefits</h2>
+      <p class="section-sub">Your 2026 benefits at a glance. Open Enrollment closes Sept 15.</p>
+      <div class="alert alert-warning"><span class="alert-icon">🔔</span><div>Open Enrollment is active. Log into <strong>Workday → Benefits</strong> to make or confirm selections. Changes take effect Jan 1, 2027.</div></div>
+      <div class="card-grid">
+        <div class="card"><span class="card-icon">🏥</span><h3>Health Insurance</h3><p>Three plan tiers (Gold, Silver, Bronze) via BlueCross. Company covers 80% of employee premium, 50% for dependants.</p><div class="card-footer"><span class="badge badge-blue">Enrollment Open</span></div></div>
+        <div class="card"><span class="card-icon">🦷</span><h3>Dental &amp; Vision</h3><p>Comprehensive dental and vision plans. $1,500 dental annual max; $200 vision allowance per year for frames or contacts.</p><div class="card-footer"><span class="badge badge-blue">Enrollment Open</span></div></div>
+        <div class="card"><span class="card-icon">📈</span><h3>401(k) / Pension</h3><p>Company matches 4% of salary. Vesting starts after 12 months. Manage contributions in Fidelity NetBenefits.</p><div class="card-footer"><span class="badge badge-green">Enrolled Auto</span></div></div>
+        <div class="card"><span class="card-icon">🧘</span><h3>Wellness</h3><p>$500/year wellness stipend for gym memberships, fitness apps, or mental health services. Submit via Expensify (Wellness category).</p><div class="card-footer"><span class="badge badge-green">Active</span></div></div>
+        <div class="card"><span class="card-icon">📚</span><h3>Learning &amp; Development</h3><p>$2,000/year for courses, conferences, books, and certifications. Requires manager approval. Submit via Expensify (L&amp;D category).</p><div class="card-footer"><span class="badge badge-green">Active</span></div></div>
+        <div class="card"><span class="card-icon">🚗</span><h3>Commuter Benefits</h3><p>Pre-tax commuter accounts for transit and parking, up to IRS limits. Enrol and manage in Workday.</p><div class="card-footer"><span class="badge badge-blue">Enrollment Open</span></div></div>
+      </div>
+    </section>
+
+    <!-- ═══ IT & TOOLS ════════════════════════════════ -->
+    <section class="page-section" id="sec-it">
+      <h2 class="section-title">🖥️ IT &amp; Tools</h2>
+      <p class="section-sub">Access, support, and the company's approved software stack.</p>
+      <div class="card-grid">
+        <div class="card"><span class="card-icon">🎫</span><h3>Submit an IT Ticket</h3><p>For hardware issues, software requests, or account access, open a ticket in <strong>Jira Service Desk</strong> or email <strong>it@yourorg.com</strong>. Response SLA: 4 hours.</p></div>
+        <div class="card"><span class="card-icon">🔑</span><h3>Access Requests</h3><p>Request access to systems via the IT Helpdesk portal. New tool requests require manager approval and a business justification.</p></div>
+        <div class="card"><span class="card-icon">📱</span><h3>Mobile Device Management</h3><p>Company iPhones are provisioned via MDM. Personal devices accessing company email must enrol in Intune. Contact IT to set up.</p></div>
+        <div class="card"><span class="card-icon">🌐</span><h3>VPN</h3><p>Use Cisco AnyConnect for VPN access. Required when working remotely or accessing any Restricted/Confidential systems.</p></div>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-header"><h3>Approved Software Stack</h3></div>
+        <table>
+          <thead><tr><th>Tool</th><th>Category</th><th>License Holder</th></tr></thead>
+          <tbody>
+            <tr><td>Google Workspace</td><td>Productivity</td><td>IT</td></tr>
+            <tr><td>Slack</td><td>Communication</td><td>IT</td></tr>
+            <tr><td>Zoom</td><td>Video Conferencing</td><td>IT</td></tr>
+            <tr><td>Jira + Confluence</td><td>Project / Docs</td><td>Engineering</td></tr>
+            <tr><td>Figma</td><td>Design</td><td>Product</td></tr>
+            <tr><td>GitHub</td><td>Code Hosting</td><td>Engineering</td></tr>
+            <tr><td>Salesforce</td><td>CRM</td><td>Sales</td></tr>
+            <tr><td>HubSpot</td><td>Marketing</td><td>Marketing</td></tr>
+            <tr><td>Expensify</td><td>Expenses</td><td>Finance</td></tr>
+            <tr><td>1Password</td><td>Security</td><td>IT</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ BRAND ══════════════════════════════════════ -->
+    <section class="page-section" id="sec-brand">
+      <h2 class="section-title">🎨 Brand Assets</h2>
+      <p class="section-sub">Official logos, colour palette, typography, and usage guidelines.</p>
+      <div class="alert alert-info"><span class="alert-icon">ℹ️</span><div>All external-facing materials must be approved by Marketing before publication. Send to <strong>brand@yourorg.com</strong>.</div></div>
+      <div class="card-grid">
+        <div class="card"><span class="card-icon">🖼️</span><h3>Logo Files</h3><p>Primary logo, wordmark, and icon in SVG, PNG, and EPS formats. Available in light, dark, and monochrome variants.</p><div class="card-footer"><a href="#" style="color:var(--accent);font-size:12px;">Download from Drive →</a></div></div>
+        <div class="card"><span class="card-icon">🎨</span><h3>Colour Palette</h3><p>Primary: <strong>#1A1A2E</strong> (Ink) · <strong>#4F46E5</strong> (Indigo) · <strong>#7C3AED</strong> (Violet). Secondary: #F7F7FC (Background) · #E2E2F0 (Stroke).</p></div>
+        <div class="card"><span class="card-icon">🔤</span><h3>Typography</h3><p>Display: <em>DM Serif Display</em>. Body: <em>Inter</em>. Use these fonts only — no substitutions in official materials.</p></div>
+        <div class="card"><span class="card-icon">📄</span><h3>Templates</h3><p>Google Slides deck, letterhead, email signature, and social media templates available in the Brand Drive folder.</p><div class="card-footer"><a href="#" style="color:var(--accent);font-size:12px;">Open Brand Drive →</a></div></div>
+      </div>
+    </section>
+
+    <!-- ═══ FORMS & TEMPLATES ═════════════════════════ -->
+    <section class="page-section" id="sec-forms">
+      <h2 class="section-title">📝 Forms &amp; Templates</h2>
+      <p class="section-sub">Commonly used forms for HR, Finance, Legal, and IT requests.</p>
+      <div class="tbl-wrap">
+        <div class="tbl-header"><h3>All Forms</h3></div>
+        <table>
+          <thead><tr><th>Form</th><th>Department</th><th>Format</th><th>Link</th></tr></thead>
+          <tbody>
+            <tr><td>Leave Request</td><td>HR</td><td>Workday</td><td><a href="#">Open in Workday →</a></td></tr>
+            <tr><td>Expense Report</td><td>Finance</td><td>Expensify</td><td><a href="#">Open in Expensify →</a></td></tr>
+            <tr><td>IT Access Request</td><td>IT</td><td>Jira</td><td><a href="#">Open Ticket →</a></td></tr>
+            <tr><td>Policy Acknowledgement</td><td>HR</td><td>Workday</td><td><a href="#">Sign in Workday →</a></td></tr>
+            <tr><td>Performance Review (Self)</td><td>HR</td><td>Workday</td><td><a href="#">Open in Workday →</a></td></tr>
+            <tr><td>New Vendor Onboarding</td><td>Finance</td><td>PDF</td><td><a href="#">Download PDF →</a></td></tr>
+            <tr><td>NDA (Standard)</td><td>Legal</td><td>PDF</td><td><a href="#">Download PDF →</a></td></tr>
+            <tr><td>Training / Conference Approval</td><td>HR</td><td>Google Form</td><td><a href="#">Open Form →</a></td></tr>
+            <tr><td>Work-From-Abroad Request</td><td>HR / Legal</td><td>Email Template</td><td><a href="#">Download Template →</a></td></tr>
+            <tr><td>Equipment Request</td><td>IT</td><td>Jira</td><td><a href="#">Open Ticket →</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══ CHANGELOG ═════════════════════════════════ -->
+    <section class="page-section" id="sec-changelog">
+      <h2 class="section-title">📅 Policy Changelog</h2>
+      <p class="section-sub">A record of all policy additions and updates.</p>
+      <div class="timeline">
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-date">June 2026</div><div class="timeline-title">Code of Conduct — Major Revision</div><div class="timeline-body">Added section on AI tool usage and social media during work hours. Strengthened whistleblower language.</div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-date">May 2026</div><div class="timeline-title">Remote Work Policy — Updated</div><div class="timeline-body">Increased WFH days from 2 to 3 per week. Added international remote work approval process.</div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-date">April 2026</div><div class="timeline-title">Leave Policy — Updated</div><div class="timeline-body">Parental leave (primary carer) extended from 12 to 16 weeks. Carry-over cap raised to 5 days.</div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-date">March 2026</div><div class="timeline-title">Expense Policy — Updated</div><div class="timeline-body">International hotel limits revised. Business class eligibility threshold lowered to 6-hour flights.</div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-date">February 2026</div><div class="timeline-title">Anti-Harassment Policy — Updated</div><div class="timeline-body">Expanded definitions to include online and off-site incidents at work-related events.</div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-date">January 2026</div><div class="timeline-title">Data Security Policy — Issued for Review</div><div class="timeline-body">Flagged for annual review. InfoSec team completing update; new version expected Oct 2026.</div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-date">November 2025</div><div class="timeline-title">Conflict of Interest Policy — Reviewed, No Changes</div><div class="timeline-body">Annual review completed. No amendments required.</div></div>
+      </div>
+    </section>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+  const sectionMeta = {
+    home:           { label: 'Home',               crumb: 'Portal / Home' },
+    announcements:  { label: 'Announcements',      crumb: 'Portal / Announcements' },
+    policies:       { label: 'All Policies',       crumb: 'Portal / Policies / All' },
+    'code-of-conduct': { label: 'Code of Conduct', crumb: 'Portal / Policies / Code of Conduct' },
+    leave:          { label: 'Leave',              crumb: 'Portal / Policies / Leave & Attendance' },
+    remote:         { label: 'Remote Work',        crumb: 'Portal / Policies / Remote Work' },
+    'data-security':{ label: 'Data Security',      crumb: 'Portal / Policies / Data & Security' },
+    expense:        { label: 'Expense',            crumb: 'Portal / Policies / Expense & Travel' },
+    'org-chart':    { label: 'Org Chart',          crumb: 'Portal / People / Org Chart' },
+    contacts:       { label: 'Key Contacts',       crumb: 'Portal / People / Contacts' },
+    onboarding:     { label: 'Onboarding',         crumb: 'Portal / People / Onboarding' },
+    benefits:       { label: 'Benefits',           crumb: 'Portal / People / Benefits' },
+    it:             { label: 'IT & Tools',         crumb: 'Portal / Resources / IT' },
+    brand:          { label: 'Brand Assets',       crumb: 'Portal / Resources / Brand' },
+    forms:          { label: 'Forms',              crumb: 'Portal / Resources / Forms' },
+    changelog:      { label: 'Changelog',          crumb: 'Portal / Resources / Policy Changelog' },
+  };
+
+  function show(id, linkEl) {
+    // hide all sections
+    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('sec-' + id).classList.add('active');
+    // update nav active state
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    if (linkEl) linkEl.classList.add('active');
+    // breadcrumb
+    const meta = sectionMeta[id];
+    if (meta) document.getElementById('breadcrumb').innerHTML = meta.crumb.replace(/([^/]+)$/, '<span>$1</span>');
+    // close sidebar on mobile
+    document.getElementById('sidebar').classList.remove('open');
+    window.scrollTo(0, 0);
+    return false;
+  }
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+
+  function filterNav(query) {
+    const q = query.toLowerCase();
+    document.querySelectorAll('.nav-link').forEach(link => {
+      const txt = link.textContent.toLowerCase();
+      link.style.display = (!q || txt.includes(q)) ? '' : 'none';
+    });
+  }
+</script>
 </body>
 </html>
